@@ -121,14 +121,14 @@ function getProductData() {
     default:
       console.log(`Unknown currency: ${currentPriceСurrency}.`);
   }
-  //Свойства товара
+
   const properties = {};
   const propertiesList = document.querySelectorAll(".properties li");
   propertiesList.forEach((propertie) => {
     properties[propertie.firstElementChild.textContent] =
       propertie.lastElementChild.textContent;
   });
-  //Полное описание
+
   const description = document.querySelector(".description").cloneNode(true);
   description.querySelectorAll("[class]").forEach((el) => {
     el.classList.remove("unused");
@@ -157,34 +157,37 @@ function getProductData() {
 function getSuggestedData() {
   const suggested = [];
   const suggestedList = document.querySelectorAll(".suggested .items article");
-  let currentPriceСurrency;
   suggestedList.forEach((item) => {
     const product = {};
-    currentPriceСurrency = item.children[2].textContent
-      .trim()
-      .match(/[$€₽]/)?.[0];
-    switch (currentPriceСurrency) {
+    const priceEl = item.querySelector("b");
+    const priceText = priceEl.textContent.trim();
+    let currentPriceCurrency = priceText.match(/[$€₽]/)?.[0];
+    
+    switch (currentPriceCurrency) {
       case "$":
-        currentPriceСurrency = "USD";
+        currentPriceCurrency = "USD";
         break;
       case "€":
-        currentPriceСurrency = "EUR";
+        currentPriceCurrency = "EUR";
         break;
       case "₽":
-        currentPriceСurrency = "RUB";
+        currentPriceCurrency = "RUB";
         break;
       default:
-        console.log(`Unknown currency: ${currentPriceСurrency}.`);
+        console.log(`Unknown currency: ${currentPriceCurrency}.`);
     }
-    product.name = item.children[1].textContent;
-    product.description = item.children[3].textContent;
-    product.image = item.children[0].src;
-    product.price = item.children[2].textContent.match(/\d+/)[0];
-    product.currency = currentPriceСurrency;
+    
+    product.name = item.querySelector("h3").textContent.trim();
+    product.description = item.querySelector("p").textContent.trim();
+    product.image = item.querySelector("img").src;
+    product.price = priceText.match(/\d+/)[0];
+    product.currency = currentPriceCurrency;
+    
     suggested.push(product);
   });
   return suggested;
 }
+
 
 function getReviewsData() {
   const reviews = [];
@@ -193,24 +196,23 @@ function getReviewsData() {
     const review = {};
 
     let rating = 0;
-    const ratingEl = item.children[0].querySelectorAll("span");
-    ratingEl.forEach((item) => {
-      if (item.classList.contains("filled")) {
+    const ratingSpans = item.querySelectorAll(".rating span");
+    ratingSpans.forEach((span) => {
+      if (span.classList.contains("filled")) {
         rating++;
       }
     });
 
-    //Автор
-    const author = {};
-    const authorList = item.children[2];
-    //Аватар
-    author.avatar = authorList.querySelector("img").src;
-    //Имя автора
-    author.name = authorList.querySelector("span").textContent;
-    //Заголовок
-    const title = item.children[1].querySelector("h3").textContent;
-    const date = authorList.querySelector("i").textContent.replaceAll("/", ".");
-    const desc = item.children[1].querySelector("p").textContent;
+    const authorEl = item.children[2];
+    const author = {
+      avatar: authorEl.querySelector("img").src,
+      name: authorEl.querySelector("span").textContent
+    };
+
+    const contentEl = item.children[1];
+    const title = contentEl.querySelector("h3").textContent;
+    const date = authorEl.querySelector("i").textContent.replaceAll("/", ".");
+    const desc = contentEl.querySelector("p").textContent;
 
     review.rating = rating;
     review.author = author;
@@ -221,5 +223,6 @@ function getReviewsData() {
   });
   return reviews;
 }
+
 
 window.parsePage = parsePage;
